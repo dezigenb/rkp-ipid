@@ -23,9 +23,15 @@ static struct nf_hook_ops nfho;
 static u_int16_t id_next;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,2,0)
-unsigned int hook_funcion(void *priv, struct sk_buff *skb, const struct nf_hook_state *state)
+static unsigned int hook_function(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
 #else
-unsigned int hook_funcion(const struct nf_hook_ops *ops, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff *))
+static unsigned int hook_function(const struct nf_hook_ops *ops, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff *));
+#endif
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,2,0)
+static unsigned int hook_function(void *priv, struct sk_buff *skb, const struct nf_hook_state *state)
+#else
+static unsigned int hook_function(const struct nf_hook_ops *ops, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff *))
 #endif
 {
 	register struct iphdr *iph;
@@ -84,7 +90,7 @@ static int __init hook_init(void)
 {
 	int ret;
 
-	nfho.hook = hook_funcion;
+	nfho.hook = hook_function;
 	nfho.pf = NFPROTO_IPV4;
 	nfho.hooknum = NF_INET_POST_ROUTING;
 	nfho.priority = NF_IP_PRI_NAT_SRC;
